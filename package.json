@@ -1,0 +1,15 @@
+{
+    "name": "webscraping",
+    "version": "1.0.0",
+    "description": "WebScraping project for Renee's work",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "puppeteer": "^14.4.0",
+        "typescript": "^4.7.3"
+    }
+}
