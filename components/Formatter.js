@@ -1,8 +1,7 @@
 const cheerio = require("cheerio");
-const fs = require("fs");
 const { trimText } = require("../helpers");
 
-function Formatter(tables, columns, target) {
+function Formatter(tables, target) {
   var payload = {};
   // var tables = JSON.parse(fs.readFileSync("./content/tables.json"));
 

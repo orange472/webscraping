@@ -1,9 +1,8 @@
 const puppeteer = require("puppeteer");
-const { QueryHandler } = require("query-selector-shadow-dom/plugins/puppeteer");
+const readline = require("readline");
 
-async function Scraper(rootURL, name, depth = 0, breadth = 0) {
+async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
   // launch puppeteer
-  await puppeteer.registerCustomQueryHandler("shadow", QueryHandler);
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setViewport({ width: 1366, height: 768 });
@@ -12,7 +11,65 @@ async function Scraper(rootURL, name, depth = 0, breadth = 0) {
   const visited = new Set();
   const tables = new Array();
 
-  await (async function scrape(url = rootURL, n = 0) {
+  console.log("\x1b[36m%s\x1b[0m", "Table name:", name);
+
+  if (rootURL == null || rootURL == "") {
+    var query = await askQuestion("Enter a search term: ");
+    console.log("\x1b[35m%s\x1b[0m", "Searching...");
+    var urls = await search(query);
+    var n = await askQuestion("How many links would you like to search?");
+
+    if (parseInt(n) == NaN) n = urls.length;
+    if (n > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
+
+    for (var i = 0; i < parseInt(n); i++) {
+      await scrape(urls[i]);
+    }
+  } else {
+    await scrape(rootURL, 0);
+  }
+
+  function askQuestion(question) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
+
+    return new Promise((resolve) =>
+      rl.question(question, (ans) => {
+        rl.close();
+        resolve(ans);
+      })
+    );
+  }
+
+  async function search(query) {
+    try {
+      var q = query.replace(/[ +]/, "+");
+      await page.goto(`https://www.google.com/search?q=${q}`);
+      await page.screenshot({ path: "screenshots/searchresults.png" });
+    } catch (err) {
+      console.log(err);
+      return;
+    }
+
+    const res = await page.$$eval(
+      "shadow/#res > #search a[href]",
+      function (links) {
+        return links
+          .filter((e) => {
+            return e.getAttribute("href").substring(0, 5).includes("http");
+          })
+          .map((e) => {
+            return e.getAttribute("href");
+          });
+      }
+    );
+
+    return res;
+  }
+
+  async function scrape(url, n = 0) {
     // if maximum depth is reached, return
     if (n > depth) return;
 
@@ -34,16 +91,18 @@ async function Scraper(rootURL, name, depth = 0, breadth = 0) {
     // scrape tables
     const filteredTables = await page.$$eval(
       "shadow/table",
-      (tables, name) => {
+      (tables, columns) => {
         return tables
           .filter((e) => {
-            return e.outerHTML.toLowerCase().includes(name.toLowerCase());
+            return columns.some((col) => {
+              return e.outerHTML.toLowerCase().includes(col.toLowerCase());
+            });
           })
           .map((e) => {
             return e.outerHTML;
           });
       },
-      name
+      columns
     );
 
     // store tables
@@ -72,9 +131,9 @@ async function Scraper(rootURL, name, depth = 0, breadth = 0) {
     // explore links
     for (const [i, link] of filteredLinks.entries()) {
       if (i >= breadth) break;
-      else await scrape(link, name, n + 1);
+      else await scrape(link, n + 1);
     }
-  })();
+  }
 
   // close puppeteer
   await browser.close();
