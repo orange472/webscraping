@@ -4,7 +4,7 @@ function stringMatch(string1, string2) {
 
 function trimText(s) {
   // return s.trim().split(/[\t\n]+/g);
-  return s.trim().replace(/[\t\n]+/g, " ");
+  return s.trim().replace(/[\t\n]+/g, " ").replace(/[" "]+/g, " ");
 }
 
 function snakeCase(str) {

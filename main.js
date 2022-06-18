@@ -10,17 +10,19 @@ const { Writer } = require("./components/Writer");
 (async function main() {
   const startTime = performance.now();
 
-  const url = null; // optional, not recommended unless data is all on one webpage
+  var url = null; // optional, scraper will only scrape the url entered
+  var source = ""; // pulled from yml file
   const tableNames = []; // pulled from yml file
   const columnNames = []; // pulled from yml file
   const target = "description"; // ** manually required **
 
-  pullTablesAndColumns(); // ** needs to be manually written because yml files aren't written the same **
+  pullTablesAndColumns(); // ** manually required **
 
   function pullTablesAndColumns() {
-    const doc = yaml.load(fs.readFileSync("./components/input.yml"));
+    const doc = yaml.load(fs.readFileSync("./content/input.yml"));
     // console.log(doc);
 
+    source = doc.sources[0].name;
     const tables = doc.sources[0].tables;
 
     for (var i = 0; i < tables.length; i++) {
@@ -42,8 +44,7 @@ const { Writer } = require("./components/Writer");
   for (const [i, name] of tableNames.entries()) {
     const columns = columnNames[i];
     const tables = await Scraper(url, name, columns, 0, 0);
-    const payload = await Formatter(tables, target);
-    console.log(payload);
+    const payload = await Formatter(tables, target, 1);
     await Writer(payload, columns, name, target);
   }
 

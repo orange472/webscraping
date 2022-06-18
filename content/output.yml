@@ -73,14 +73,13 @@ columns:
       recently closed task associated with the record.
   - name: last_referenced_date
     description: >-
-      The timestamp when the current user last accessed this             record,
-      a record related to this record, or a list view.
+      The timestamp when the current user last accessed this record, a record
+      related to this record, or a list view.
   - name: last_viewed_date
     description: >-
-      The timestamp when the current user last viewed this             record or
-      list view. If this value is null, the user might have only accessed
-      this             record or list view (LastReferencedDate) but not
-      viewed            it.
+      The timestamp when the current user last viewed this record or list view.
+      If this value is null, the user might have only accessed this record or
+      list view (LastReferencedDate) but not viewed it.
   - name: master_record_id
     description: >-
       If this object was deleted as the result of a merge, this field contains
@@ -102,7 +101,7 @@ columns:
       user logged in to the API to perform the create.If you have set up account
       teams in your org, updating this field has different consequences
       depending on your version of the API: For API version 12.0 and later,
-      sharing records are kept, as they are for all objects.  For API version
+      sharing records are kept, as they are for all objects. For API version
       before 12.0, sharing records are deleted. For API version 16.0 and later,
       users must have the “Transfer Record” permission in order to update
       (transfer) account ownership using this field.
@@ -171,7 +170,7 @@ columns:
     description: >-
       Standard Industrial Classification code of the company’s main business
       categorization, for example, 57340 for Electronics. Maximum of 20
-      characters.  This field is available on business accounts, not person
+      characters. This field is available on business accounts, not person
       accounts.
   - name: sic_desc
     description: >-
