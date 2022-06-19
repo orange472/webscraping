@@ -1,5 +1,5 @@
 const puppeteer = require("puppeteer");
-const readline = require("readline");
+const { askQuestion } = require("../helpers");
 
 async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
   // launch puppeteer
@@ -27,20 +27,6 @@ async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
     }
   } else {
     await scrape(rootURL, 0);
-  }
-
-  function askQuestion(question) {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-
-    return new Promise((resolve) =>
-      rl.question(question, (ans) => {
-        rl.close();
-        resolve(ans);
-      })
-    );
   }
 
   async function search(query) {

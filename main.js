@@ -44,7 +44,7 @@ const { Writer } = require("./components/Writer");
   for (const [i, name] of tableNames.entries()) {
     const columns = columnNames[i];
     const tables = await Scraper(url, name, columns, 0, 0);
-    const payload = await Formatter(tables, target, 1);
+    const payload = await Formatter(tables, target, 3);
     await Writer(payload, columns, name, target);
   }
 

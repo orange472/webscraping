@@ -1,10 +1,15 @@
+const readline = require("readline");
+
 function stringMatch(string1, string2) {
   return string1.toLowerCase().includes(string2.toLowerCase());
 }
 
 function trimText(s) {
   // return s.trim().split(/[\t\n]+/g);
-  return s.trim().replace(/[\t\n]+/g, " ").replace(/[" "]+/g, " ");
+  return s
+    .trim()
+    .replace(/[\t\n]+/g, " ")
+    .replace(/[" "]+/g, " ");
 }
 
 function snakeCase(str) {
@@ -22,10 +27,25 @@ function pascalCase(str) {
   return camel.charAt(0).toUpperCase() + camel.slice(1);
 }
 
+function askQuestion(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) =>
+    rl.question(question, (ans) => {
+      rl.close();
+      resolve(ans);
+    })
+  );
+}
+
 module.exports = {
   stringMatch,
   trimText,
   snakeCase,
   camelCase,
   pascalCase,
+  askQuestion,
 };
