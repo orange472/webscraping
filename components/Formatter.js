@@ -13,6 +13,7 @@ async function Formatter(tables, target, strategy = 0) {
 
   async function extract(table) {
     const $ = cheerio.load(table);
+    fs.writeFileSync("content/tables.html", $(table).html());
     const rows = $("table").find("tr");
     var curr = ""; // holds the key most recently inserted into payload
 
@@ -121,7 +122,8 @@ async function Formatter(tables, target, strategy = 0) {
             'Type nothing or "next" to go to next text.\n' +
             'Type "next row" to go the next table row.\n' +
             'Type "prev row" to go to previous table row.\n' +
-            "Type a property from the available properties if the text matches the property."
+            "Type a property from the available properties if the text matches the property.\n" +
+            'Type "done" to skip table.'
         );
       };
 
@@ -168,6 +170,8 @@ async function Formatter(tables, target, strategy = 0) {
             if (res == "help") {
               printOutRules();
               k--;
+            } else if (res == "done") {
+              return;
             } else if (res == "" || res == "next") {
               continue;
             } else if (res == "back") {

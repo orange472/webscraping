@@ -14,16 +14,23 @@ async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
   console.log("\x1b[36m%s\x1b[0m", "Table name:", name);
 
   if (rootURL == null || rootURL == "") {
-    var query = await askQuestion("Enter a search term: ");
-    console.log("\x1b[35m%s\x1b[0m", "Searching...");
-    var urls = await search(query);
-    var n = await askQuestion("How many links would you like to search?");
+    var query = await askQuestion(
+      "Enter a search term (or type nothing to type in a full url): "
+    );
+    if (query == "") {
+      var rootURL = await askQuestion("Enter url: ");
+      await scrape(rootURL);
+    } else {
+      console.log("\x1b[35m%s\x1b[0m", "Searching...");
+      var urls = await search(query);
+      var n = await askQuestion("How many links would you like to search?");
 
-    if (parseInt(n) == NaN) n = urls.length;
-    if (n > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
+      if (parseInt(n) == NaN) n = urls.length;
+      if (n > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
 
-    for (var i = 0; i < parseInt(n); i++) {
-      await scrape(urls[i]);
+      for (var i = 0; i < parseInt(n); i++) {
+        await scrape(urls[i]);
+      }
     }
   } else {
     await scrape(rootURL, 0);

@@ -1,5 +1,4 @@
 node_modules
-
-content
-
-screenshots
+/node_modules
+/content
+/screenshots
