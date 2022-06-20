@@ -45,7 +45,7 @@ const { Writer } = require("./components/Writer");
     const columns = columnNames[i];
     const tables = await Scraper(url, name, columns, 0, 0);
     const payload = await Formatter(tables, target, 3);
-    await Writer(payload, columns, name, target);
+    await Writer(payload, name, columns, target);
   }
 
   const endTime = performance.now();

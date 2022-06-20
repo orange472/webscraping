@@ -14,26 +14,53 @@ async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
   console.log("\x1b[36m%s\x1b[0m", "Table name:", name);
 
   if (rootURL == null || rootURL == "") {
+    await scrapeUserInput();
+  } else {
+    await scrape(rootURL, 0);
+  }
+
+  async function scrapeUserInput() {
     var query = await askQuestion(
-      "Enter a search term (or type nothing to type in a full url): "
+      "Enter a search term (or type nothing if you want to enter a full url): "
     );
     if (query == "") {
-      var rootURL = await askQuestion("Enter url: ");
-      await scrape(rootURL);
+      var res = await askQuestion(
+        'Enter url (or type "back" to enter a search term): '
+      );
+      if (res == "back") return scrapeUserInput();
+      await scrape(res);
     } else {
       console.log("\x1b[35m%s\x1b[0m", "Searching...");
-      var urls = await search(query);
-      var n = await askQuestion("How many links would you like to search?");
 
-      if (parseInt(n) == NaN) n = urls.length;
-      if (n > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
+      let urls = await search(query);
+      let res = await askQuestion(
+        'Enter how many links to scrape (or type "show" to show links or "back" to enter a new search term): '
+      );
 
-      for (var i = 0; i < parseInt(n); i++) {
+      while (res == "show" || res == "links") {
+        console.log(urls);
+        res = await askQuestion(
+          'Enter how many links you would like to scrape (or type "show to show links or "back" to enter a new search term): '
+        );
+      }
+
+      if (res == "back") return scrapeUserInput();
+      if (res[0] == "[") {
+        res.replace(/\[|\]/g, "").split(",");
+        for (var i = 0; i < res.length; i++) {
+          if (parseInt(res[i]) != NaN) {
+            await scrape(urls[parseInt(res[i])]);
+          }
+        }
+        return;
+      }
+      if (parseInt(res) == NaN) res = 1;
+      if (res > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
+
+      for (var i = 0; i < parseInt(res); i++) {
         await scrape(urls[i]);
       }
     }
-  } else {
-    await scrape(rootURL, 0);
   }
 
   async function search(query) {

@@ -5,10 +5,13 @@ const { trimText, askQuestion } = require("../helpers");
 async function Formatter(tables, target, strategy = 0) {
   var payload = {};
 
-  console.log("\x1b[35m%s\x1b[0m", "Formatting...");
-
-  for (const table of tables) {
-    await extract(table);
+  for (const [i, table] of tables.entries()) {
+    console.log(
+      "\x1b[35m%s\x1b[0m",
+      `Formatting... [${i + 1}/${tables.length}]`
+    );
+    var res = await extract(table);
+    if (res == "done all") break;
   }
 
   async function extract(table) {
@@ -117,13 +120,14 @@ async function Formatter(tables, target, strategy = 0) {
 
       const printOutRules = () => {
         console.log(
-          "\x1b[31m%s\x1b[0m",
+          "\x1b[34m%s\x1b[0m",
           'Type "back" to go to previous text.\n' +
             'Type nothing or "next" to go to next text.\n' +
             'Type "next row" to go the next table row.\n' +
             'Type "prev row" to go to previous table row.\n' +
             "Type a property from the available properties if the text matches the property.\n" +
-            'Type "done" to skip table.'
+            'Type "done" to skip table.\n' +
+            'Type "done all" to skip all remaining tables.'
         );
       };
 
@@ -163,13 +167,16 @@ async function Formatter(tables, target, strategy = 0) {
               index = $(e).index();
             }
 
-            console.log("\x1b[36m%s\x1b[0m", "\nFound text:", text);
+            console.log("\x1b[33m%s\x1b[0m", "Found text:", text);
             console.log("Available properties:", availableProperties);
             var res = await askQuestion('Type "help" for help.');
+            console.log("");
 
             if (res == "help") {
               printOutRules();
               k--;
+            } else if (res == "done all") {
+              return "done all";
             } else if (res == "done") {
               return;
             } else if (res == "" || res == "next") {
@@ -186,7 +193,7 @@ async function Formatter(tables, target, strategy = 0) {
             } else {
               var idx = availableProperties.indexOf(res);
               if (idx == -1) {
-                console.log("\x1b[31m%s\x1b[0m", "No such property found!");
+                console.log("\x1b[34m%s\x1b[0m", "No such property found!");
                 k--;
                 continue;
               }
@@ -265,11 +272,10 @@ async function Formatter(tables, target, strategy = 0) {
         strategy2();
         break;
       case 3:
-        await strategy3();
+        return await strategy3();
         break;
       default:
         console.log("Invalid strategy!");
-        break;
     }
   }
 
