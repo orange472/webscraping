@@ -5,16 +5,20 @@ const puppeteer = require("puppeteer");
 const { QueryHandler } = require("query-selector-shadow-dom/plugins/puppeteer");
 const { Scraper } = require("./components/Scraper");
 const { Formatter } = require("./components/Formatter");
-const { Writer } = require("./components/Writer");
+const { Writer, WriterMultiple } = require("./components/Writer");
 
 (async function main() {
   const startTime = performance.now();
 
   var url = null; // optional, scraper will only scrape the url entered
+  var depth = 0;
+  var breadth = 0;
   var source = ""; // pulled from yml file
   const tableNames = []; // pulled from yml file
   const columnNames = []; // pulled from yml file
-  const target = "description"; // ** manually required **
+
+  const targets = ["description"]; // ** manually required **
+  var strategy = 3;
 
   pullTablesAndColumns(); // ** manually required **
 
@@ -43,9 +47,9 @@ const { Writer } = require("./components/Writer");
 
   for (const [i, name] of tableNames.entries()) {
     const columns = columnNames[i];
-    const tables = await Scraper(url, name, columns, 0, 0);
-    const payload = await Formatter(tables, target, 3);
-    await Writer(payload, name, columns, target);
+    const tables = await Scraper(url, name, columns, depth, breadth);
+    const payload = await Formatter(tables, targets, strategy);
+    await Writer(payload, name, columns, targets);
   }
 
   const endTime = performance.now();

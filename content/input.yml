@@ -1,300 +1,358 @@
- 
 version: 2
 
 sources:
-  - name: netsuite
-    schema: "{{ var('netsuite_schema', 'netsuite') }}" # you will need to customize if your schema name is not netsuite
-    database: "{{ var('netsuite_database', target.database) }}"
+  - name: salesforce
+    schema: "{{ var('salesforce_schema', 'salesforce') }}" # you will need to customize if your schema name is not salesforce
+    database: "{% if target.type != 'spark'%}{{ var('salesforce_database', target.database) }}{% endif %}"
     loader: fivetran
     loaded_at_field: _fivetran_synced
     freshness:
-      warn_after: {count: 24, period: hour}
-      error_after: {count: 48, period: hour}
+      warn_after: { count: 24, period: hour }
+      error_after: { count: 48, period: hour }
 
     tables:
-      - name: accounting_books
-        description: Table detailing all accounting books set up in Netsuite.
+      - name: account
+        loaded_at_field: _fivetran_synced
+        description: Represents an individual account, which is an organization or person involved with your business (such as customers, competitors, and partners).
         columns:
-          - name: accounting_book_id
-            description: The unique identifier of the accounting book.
-          - name: is_primary
-            description: Boolean indicating whether it is a primary accounting book.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: accounting_periods
-        description: Table detailing all accounting periods, including monthly, quarterly and yearly.
-        columns:
-          - name: accounting_period_id
-            description: The unique identifier of the accounting period.
-          - name: name
-            description: The name of the accounting period.
-          - name: full_name
-            description: The full name of the accounting period.
-          - name: year_id
-            description: The year id the accounting period is associated with.
-          - name: fiscal_calendar_id
-            description: The fiscal calendar id the accounting period is associated with.
-          - name: quarter
-            description: The quarter which the accounting period takes place in.
-          - name: starting
-            description: The timestamp indicating the start of the accounting period.
-          - name: ending
-            description: The timestamp indicating the end of the accounting period.
-          - name: year_0
-            description: Value indicating whether the accounting period is in it's initial year.
-          - name: is_adjustment
-            description: Value indicating whether the accounting period is an adjustment (either yes or no).
-          - name: closed
-            description: Value indicating whether the accounting period is closed (either yes or no).
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: accounts
-        description: Table that provides a complete listing of every account in the accounting system.
-        columns:
-          - name: account_id
-            description: The unique identifier associated with the account.
-          - name: parent_id
-            description: The accounts associated parent account id.
-          - name: name
-            description: The name of the account.
-          - name: type_name
-            description: The name of the type of the account (ie. Bank, Equity, Income, Expense).
-          - name: accountingnumber
-            description: The account number associated with the account.
-          - name: general_rate_type
-            description: The general rate type of the account (Current, Historical, Average).
-          - name: is_leftside
-            description: Value indicating whether the account is on the leftside (debit).
-          - name: is_balancesheet
-            description: Value indicating whether the account is a balance sheet account.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: classes
-        description: Table detailing all classes set up in Netsuite.
-        columns:
-          - name: class_id
-            description: The unique identifier of the class.
-          - name: full_name
-            description: The full name of the class.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: consolidated_exchange_rates
-        description: Table detailing average, historical and current exchange rates for all accounting periods.
-        columns:
-          - name: accounting_book_id
-            description: The accounting book the consolidated exchange rate is associated with.
-          - name: accounting_period_id
-            description: The accounting period the consolidated exchange rate is associated with.
-          - name: average_rate
-            description: The consolidated exchange rates average rate.
-          - name: current_rate
-            description: The consolidated exchange rates current rate.
-          - name: historical_rate
-            description: The consolidated exchange rates historical rate.
-          - name: from_subsidiary_id
-            description: The subsidiary id which the consolidated exchange rate is from.
-          - name: to_subsidiary_id
-            description: THe subsidiary id which the consolidated exchange rate is for.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-      
-      - name: currencies
-        description: The names and symbols for all currencies set up in Netsuite.
-        columns:
-          - name: currency_id
-            description: The unique identifier of the currency.
-          - name: name
-            description: The name of the currency.
-          - name: symbol
-            description: The currency's three letter symbol (ie. USD, EUR, CAD).
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: customers
-        description: Table detailing all customer information.
-        columns:
-          - name: customer_id
-            description: The unique identifier of the customer.
-          - name: companyname
-            description: The name of the company.
-          - name: customer_extid
-            description: The unique identifier of the external customer reference.
-          - name: city
-            description: The city where the customer is located.
-          - name: state
-            description: The state where the customer is located.
-          - name: zipcode
-            description: The zipcode of the customer.
-          - name: country
-            description: The country where the customer is located.
-          - name: date_first_order
-            description: The timestamp of the customers first order.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: departments
-        description: Table detailing all departments set up in Netsuite.
-        columns:
-          - name: department_id
-            description: The unique identifier of the department.
-          - name: name
-            description: The name of the department.
-          - name: full_name
-            description: The department's full name.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: expense_accounts
-        description: Table detailing all expense accounts.
-        columns:
-          - name: expense_account_id
-            description: The unique identifier of the expense account.
-          - name: name
-            description: The name of the expense account.
-          - name: parent_id
-            description: The expense account's associated parent account.
+          - name: id
+            description: The unique, system-generated ID assigned during creation
+          - name: _fivetran_synced
+            description: The time at which fivetran last synced this record
           - name: account_number
-            description: The account number associated with the expense account.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: income_accounts
-        description: Table detailing all income accounts.
-        columns:
-          - name: income_account_id
-            description: The unique identifier of the income account.
+            description: Account number assigned to this account (not the unique, system-generated ID assigned during creation).
+          - name: account_source
+            description: The source of the account record. For example, Advertisement, Data.com, or Trade Show.
+          - name: annual_revenue
+            description: Estimated annual revenue of the account.
+          - name: billing_city
+            description: Details for the billing address of this account.
+          - name: billing_country
+            description: Details for the billing address of this account.
+          - name: billing_country_code
+            description: The ISO country code for the account’s billing address.
+          - name: billing_geocode_accuracy
+            description: Accuracy level of the geocode for the billing address. See Compound Field Considerations and Limitations for details on geolocation compound fields.
+          - name: billing_latitude
+            description: Used with BillingLongitude to specify the precise geolocation of a billing address.
+          - name: billing_longitude
+            description: Used with BillingLatitude to specify the precise geolocation of a billing address.
+          - name: billing_postal_code
+            description: Details for the billing address of this account.
+          - name: billing_state
+            description: Details for the billing address of this account.
+          - name: billing_state_code
+            description: The ISO state code for the account’s billing address.
+          - name: billing_street
+            description: Street address for the billing address of this account.
+          - name: description
+            description: Text description of the account.
+          - name: fax
+            description: Fax number for the account.
+          - name: industry
+            description: An industry associated with this account.
+          - name: is_deleted
+            description: Indicates whether the object has been moved to the Recycle Bin (true) or not (false).
+          - name: jigsaw_company_id
+            description: References the ID of a company in Data.com. If an account has a value in this field, it means that the account was imported from Data.com.
+          - name: last_activity_date
+            description: Value is one of the following, whichever is the most recent
+          - name: last_referenced_date
+            description: The timestamp when the current user last accessed this record, a record related to this record, or a list view.
+          - name: last_viewed_date
+            description: The timestamp when the current user last viewed this record or list view. If this value is null, the user might have only accessed this record or list view (LastReferencedDate) but not viewed it.
+          - name: master_record_id
+            description: If this object was deleted as the result of a merge, this field contains the ID of the record that was kept. If this object was deleted for any other reason, or has not been deleted, the value is null.
           - name: name
-            description: The name of the income account.
+            description: Required. Name of the account.
+          - name: number_of_employees
+            description: Number of employees working at the company represented by this account.
+          - name: owner_id
+            description: The ID of the user who currently owns this account.
+          - name: ownership
+            description: Ownership type for the account, for example Private, Public, or Subsidiary.
           - name: parent_id
-            description: The income account's associated parent account.
-          - name: account_number
-            description: The account number associated with the income account.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
+            description: ID of the parent object, if any.
+          - name: phone
+            description: Phone number for this account.
+          - name: photo_url
+            description: Path to be combined with the URL of a Salesforce instance (for example, https://yourInstance.salesforce.com/) to generate a URL to request the social network profile image associated with the account.
+          - name: rating
+            description: The account’s prospect rating, for example Hot, Warm, or Cold.
+          - name: record_type_id
+            description: ID of the record type assigned to this object.
+          - name: shipping_city
+            description: Details of the shipping address for this account
+          - name: shipping_country
+            description: Details of the shipping address for this account. Country
+          - name: shipping_country_code
+            description: The ISO country code for the account’s shipping address.
+          - name: shipping_geocode_accuracy
+            description: Accuracy level of the geocode for the shipping address.
+          - name: shipping_latitude
+            description: Used with ShippingLongitude to specify the precise geolocation of a shipping address.
+          - name: shipping_longitude
+            description: Used with ShippingLatitude to specify the precise geolocation of an address.
+          - name: shipping_postal_code
+            description: Details of the shipping address for this account. Postal code
+          - name: shipping_state
+            description: Details of the shipping address for this account. State
+          - name: shipping_state_code
+            description: The ISO state code for the account’s shipping address.
+          - name: shipping_street
+            description: The street address of the shipping address for this account.
+          - name: sic
+            description: Standard Industrial Classification code of the company’s main business categorization, for example, 57340 for Electronics.
+          - name: sic_desc
+            description: A brief description of an organization’s line of business, based on its SIC code.
+          - name: site
+            description: Name of the account’s location, for example Headquarters or London.
+          - name: ticker_symbol
+            description: The stock market symbol for this account. This field is available on business accounts, not person accounts.
+          - name: type
+            description: Type of account, for example, Customer, Competitor, or Partner.
+          - name: website
+            description: The website of this account.
 
-      - name: items
-        description: Table detailing information about the items created in Netsuite.
+      - name: opportunity
+        loaded_at_field: _fivetran_synced
+        description: Represents an opportunity, which is a sale or pending deal.
         columns:
-          - name: item_id
-            description: The unique identifier of the item.
-          - name: name
-            description: The name of the item.
-          - name: type_name
-            description: The type of the item (ie. Markup, Service, Discount).
-          - name: salesdescription
-            description: The items sales description.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: locations
-        description: Table detailing all locations, including store, warehouse and office locations.
-        columns:
-          - name: location_id
-            description: The unique identifier of the location.
-          - name: name
-            description: The location's name.
-          - name: full_name
-            description: The full name of the location.
-          - name: city
-            description: The location's city.
-          - name: country
-            description: The location's country.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: subsidiaries
-        description: Table detailing all subsidiaries.
-        columns:
-          - name: subsidiary_id
-            description: The unique identifier of the subsidiary.
-          - name: fiscal_calendar_id
-            description: The fiscal calendar id associated with the fiscal calendar the subsidiary is on.
-          - name: full_name
-            description: The full name of the subsidiary.
-          - name: name
-            description: The name of the subsidiary.
-          - name: parent_id 
-            description: The parent subsidiary id which the subsidiary is under.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: transaction_lines
-        description: A table detailing all transaction lines for all transactions.
-        columns:
-          - name: transaction_id
-            description: The transaction id which the transaction line is associated with.
-          - name: transaction_line_id
-            description: The unique identifier of the transaction line.
-          - name: subsidiary_id
-            description: The subsidiary id of the subsidiary which the transaction line is associated with.
+          - name: id
+            description: The unique, system-generated ID assigned during creation.
+          - name: _fivetran_synced
+            description: The time at which fivetran last synced this record
           - name: account_id
-            description: The account id of the account linked to the transaction line.
-          - name: company_id
-            description: The company id of the company linked to the transaction line.
-          - name: item_id
-            description: The item id of the item which is included in the transaction line.
+            description: ID of the account associated with this opportunity.
           - name: amount
-            description: The amount of the transaction line.
-          - name: non_posting_line
-            description: Value indicating whether the transaction line is a non posting line (either Yes or No).
-          - name: class_id
-            description: The class id of the class which the transaction line is associated with.
-          - name: location_id
-            description: The location id of the location which the transaction line took place.
-          - name: department_id
-            description: The department id of the department linked to the transaction line.
-          - name: memo
-            description: The memo attached to the transaction line.
-
-      - name: transactions
-        description: A table detailing all transactions.
-        columns:
-          - name: transaction_id
-            description: The unique identifier of the transaction.
-          - name: status
-            description: The status of the transaction (ie. Paid In Full, Open, Cancelled).
-          - name: trandate
-            description: The timestamp of the transaction date.
-          - name: currency_id
-            description: The currency id of the currency used in the transaction.
-          - name: accounting_period_id
-            description: The accounting period id of the accounting period which the transaction took place in.
-          - name: due_date
-            description: The timestamp of the transaction due date.
-          - name: transaction_type
-            description: The transaction type (ie. Bill, Check, Deposit).
-          - name: is_intercompany
-            description: Value indicating whether the transaction is intercompany (either Yes or No).
-          - name: is_advanced_intercompany
-            description: Value indicating whether the transaction is an advanced intercompany journal entry (either Yes or No).
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: vendor_types
-        description: A table detailing all the various types of vendors.
-        columns:
-          - name: vendor_type_id
-            description: The unique identifier of the vendor type
-          - name: name
-            description: The name of the vendor type.
-          - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-
-      - name: vendors
-        description: A table detailing all vendor information.
-        columns:
-          - name: vendor_id
-            description: The unique identifier of the vendor.
-          - name: vendor_type_id
-            description: The vendor type the vendor is associated with.
-          - name: companyname
-            description: The vendor's company name.
+            description: Estimated total sale amount. For opportunities with products, the amount is the sum of the related products.
+          - name: campaign_id
+            description: ID of a related Campaign. This field is defined only for those organizations that have the campaign feature Campaigns enabled.
+          - name: close_date
+            description: Required. Date when the opportunity is expected to close.
           - name: created_date
-            description: The timestamp of the date the vendor was created.
+            description: Date when the opportunity is was created.
+          - name: description
+            description: Text description of the opportunity.
+          - name: expected_revenue
+            description: Read-only field that is equal to the product of the opportunity Amount field and the Probability.
+          - name: fiscal
+            description: If fiscal years are not enabled, the name of the fiscal quarter or period in which the opportunity CloseDate falls.
+          - name: fiscal_quarter
+            description: Represents the fiscal quarter. Valid values are 1, 2, 3, or 4.
+          - name: fiscal_year
+            description: Represents the fiscal year, for example, 2006.
+          - name: forecast_category
+            description: Restricted picklist field.
+          - name: forecast_category_name
+            description: The name of the forecast category.
+          - name: has_open_activity
+            description: Indicates whether an opportunity has an open event or task (true) or not (false).
+          - name: has_opportunity_line_item
+            description: Read-only field that indicates whether the opportunity has associated line items. A value of true means that Opportunity line items have been created for the opportunity.
+          - name: has_overdue_task
+            description: Indicates whether an opportunity has an overdue task (true) or not (false).
+          - name: is_closed
+            description: True, if Stage Name Label is Closed.
+          - name: is_deleted
+            description: Indicates whether the object has been moved to the Recycle Bin (true) or not (false).
+          - name: is_excluded_from_territory_2_filter
+            description: Used for Filter-Based Opportunity Territory Assignment. Indicates whether the opportunity is excluded (True) or included (False) each time the APEX filter is executed.
+          - name: is_won
+            description: True, if Stage Name Label is Won.
+          - name: last_activity_date
+            description: Value is one of the following, whichever is the most recent:Due date of the most recent event logged against the record or Due date of the most recently closed task associated with the record.
+          - name: last_referenced_date
+            description: The timestamp when the current user last accessed this record, a record related to this record, or a list view.
+          - name: last_viewed_date
+            description: The timestamp when the current user last viewed this record or list view. If this value is null, the user might have only accessed this record or list view (LastReferencedDate) but not viewed it.
+          - name: lead_source
+            description: Source of this opportunity, such as Advertisement or Trade Show.
+          - name: name
+            description: Required. A name for this opportunity.
+          - name: next_step
+            description: Description of next task in closing opportunity.
+          - name: owner_id
+            description: ID of the User who has been assigned to work this opportunity.
+          - name: Pricebook2Id
+            description: ID of a related Pricebook2 object. The Pricebook2Id field indicates which Pricebook2 applies to this opportunity. The Pricebook2Id field is defined only for those organizations that have products enabled as a feature. You can specify values for only one field (Pricebook2Id or PricebookId)—not both fields. For this reason, both fields are declared nillable.
+          - name: pricebook_2_id
+            description: Unavailable as of version 3.0. As of version 8.0, the Pricebook object is no longer available. Use the Pricebook2Id field instead, specifying the ID of the Pricebook2 record.
+          - name: probability
+            description: Percentage of estimated confidence in closing the opportunity.
+          - name: record_type_id
+            description: ID of the record type assigned to this object.
+          - name: stage_name
+            description: Required. Current stage of this record. The StageName field controls several other fields on an opportunity.
+          - name: synced_quote_id
+            description: The ID of the Quote that syncs with the opportunity.
+          - name: territory_2_id
+            description: The ID of the territory that is assigned to the opportunity.
+          - name: type
+            description: Type of opportunity. For example, Existing Business or New Business.
+
+      - name: user
+        freshness: null
+        description: Represents a user in your organization.
+        columns:
+          - name: id
+            description: The unique, system-generated ID assigned during creation.
+          - name: _fivetran_synced
+            description: The time at which fivetran last synced this record
           - name: _fivetran_deleted
-            description: Boolean created by Fivetran to indicate whether the record has been deleted.
-    
+            description: True, if this field has been deleted
+          - name: about_me
+            description: Information about the user, such as areas of interest or skills.
+          - name: account_id
+            description: ID of the Account associated with a Customer Portal user. This field is null for Salesforce users.
+          - name: alias
+            description: Required. The user’s alias. For example, jsmith.
+          - name: badge_text
+            description: The community role, displayed on the user profile page just below the user name.
+          - name: banner_photo_url
+            description: The URL for the user's banner photo.
+          - name: call_center_id
+            description: If Salesforce CRM Call Center is enabled, represents the call center to which this user is assigned.
+          - name: city
+            description: The city associated with the user. Up to 40 characters allowed.
+          - name: community_nickname
+            description: Name used to identify this user in the Community application, which includes the ideas and answers features.
+          - name: company_name
+            description: The name of the user’s company.
+          - name: contact_id
+            description: ID of the Contact associated with this account. The contact must have a value in the AccountId field or an error occurs.
+          - name: country
+            description: The country associated with the user.
+          - name: country_code
+            description: The ISO country code associated with the user.
+          - name: default_group_notification_frequency
+            description: The default frequency for sending the user's Chatter group email notifications when the user joins groups.
+          - name: delegated_approver_id
+            description: Id of the user who is a delegated approver for this user.
+          - name: department
+            description: The company department associated with the user.
+          - name: digest_frequency
+            description: The frequency at which the system sends the user’s Chatter personal email digest.
+          - name: division
+            description: The division associated with this user, similar to Department and unrelated to DefaultDivision.
+          - name: email
+            description: Required. The user’s email address.
+          - name: email_encoding_key
+            description: Required. The email encoding for the user, such as ISO-8859-1 or UTF-8.
+          - name: email_preferences_auto_bcc
+            description: Determines whether the user receives copies of sent emails. This option applies only if compliance BCC emails are not enabled.
+          - name: employee_number
+            description: The user’s employee number.
+          - name: extension
+            description: The user’s phone extension number.
+          - name: fax
+            description: The user’s fax number.
+          - name: federation_identifier
+            description: Indicates the value that must be listed in the Subject element of a Security Assertion Markup Language (SAML) IDP certificate to authenticate the user for a client application using single sign-on.
+          - name: first_name
+            description: The user’s first name.
+          - name: forecast_enabled
+            description: Indicates whether the user is enabled as a forecast manager (true) or not (false).
+          - name: full_photo_url
+            description: The URL for the user's profile photo.
+          - name: geocode_accuracy
+            description: The level of accuracy of a location’s geographical coordinates compared with its physical address.
+          - name: individual_id
+            description: ID of the data privacy record associated with this user. This field is available if Data Protection and Privacy is enabled.
+          - name: is_active
+            description: Indicates whether the user has access to log in (true) or not (false).
+          - name: is_profile_photo_active
+            description: Indicates whether a user has a profile photo (true) or not (false).
+          - name: language_locale_key
+            description: Required. The user’s language, such as “French” or “Chinese (Traditional).”
+          - name: last_login_date
+            description: The date and time when the user last successfully logged in. This value is updated if 60 seconds have elapsed since the user’s last login.
+          - name: last_name
+            description: Required. The user’s last name.
+          - name: last_referenced_date
+            description: The timestamp for when the current user last viewed a record related to this record.
+          - name: last_viewed_date
+            description: The timestamp for when the current user last viewed this record. If this value is null, this record might only have been referenced (LastReferencedDate) and not viewed.
+          - name: latitude
+            description: Used with Longitude to specify the precise geolocation of an address.
+          - name: locale_sid_key
+            description: Required. This field is a restricted picklist field. The value of the field affects formatting and parsing of values, especially numeric values, in the user interface.
+          - name: longitude
+            description: Used with Latitude to specify the precise geolocation of an address.
+          - name: manager_id
+            description: The Id of the user who manages this user.
+          - name: medium_banner_photo_url
+            description: The URL for the medium-sized user profile banner photo.
+          - name: mobile_phone
+            description: The user’s mobile or cellular phone number.
+          - name: name
+            description: Concatenation of FirstName and LastName.
+          - name: offline_trial_expiration_date
+            description: The date and time when the user’s Connect Offline trial expires.
+          - name: phone
+            description: The user’s phone number.
+          - name: postal_code
+            description: The user’s postal or ZIP code.
+          - name: profile_id
+            description: Required. ID of the user’s Profile. Use this value to cache metadata based on profile. In earlier releases, this was RoleId.
+          - name: receives_admin_info_emails
+            description: Indicates whether the user receives email for administrators from Salesforce (true) or not (false).
+          - name: receives_info_emails
+            description: Indicates whether the user receives informational email from Salesforce (true) or not (false).
+          - name: sender_email
+            description: The email address used as the From address when the user sends emails. This address is the same value shown in Setup on the My Email Settings page.
+          - name: sender_name
+            description: The name used as the email sender when the user sends emails. This name is the same value shown in Setup on the My Email Settings page.
+          - name: signature
+            description: The signature text added to emails.
+          - name: small_banner_photo_url
+            description: The URL for the small user profile banner photo.
+          - name: small_photo_url
+            description: The URL for a thumbnail of the user's profile photo.
+          - name: state
+            description: The state associated with the User.
+          - name: state_code
+            description: The ISO state code associated with the user.
+          - name: street
+            description: The street address associated with the User.
+          - name: time_zone_sid_key
+            description: Required. This field is a restricted picklist field. A User time zone affects the offset used when displaying or entering times in the user interface.
+          - name: title
+            description: The user’s business title, such as “Vice President.”
+          - name: username
+            description: Contains the name that a user enters to log in. The value for this field must be in the form of an email address, using all lowercase characters. It must also be unique across all organizations.
+          - name: user_role_id
+            description: ID of the user’s UserRole.
+          - name: user_type
+            description: The category of user license.
+
+      - name: user_role
+        freshness: null
+        description: Represents a user role in your organization.
+        columns:
+          - name: id
+            description: The unique, system-generated ID assigned during creation
+          - name: _fivetran_synced
+            description: The time at which fivetran last synced this record
+          - name: _fivetran_deleted
+            description: True, if this field has been deleted
+          - name: case_access_for_account_owner
+            description: The case access level for the account owner.
+          - name: contact_access_for_account_owner
+            description: The contact access level for the account owner.
+          - name: developer_name
+            description: The unique name of the object in the API.
+          - name: forecast_user_id
+            description: The ID of the forecast manager associated with this role.
+          - name: may_forecast_manager_share
+            description: Indicates whether the forecast manager can manually share their own forecast.
+          - name: name
+            description: Required. Name of the role. Corresponds to Label on the user interface.
+          - name: opportunity_access_for_account_owner
+            description: Required. The opportunity access level for the account owner.
+          - name: parent_role_id
+            description: The ID of the parent role.
+          - name: portal_type
+            description: This value indicates the type of portal for the role
+          - name: rollup_description
+            description: Description of the forecast rollup.
