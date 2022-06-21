@@ -20,9 +20,9 @@ const { Writer, WriterMultiple } = require("./components/Writer");
   const targets = ["description"]; // ** manually required **
   var strategy = 3;
 
-  pullTablesAndColumns(); // ** manually required **
+  pullData(); // ** manually required **
 
-  function pullTablesAndColumns() {
+  function pullData() {
     const doc = yaml.load(fs.readFileSync("./content/input.yml"));
     // console.log(doc);
 
@@ -45,6 +45,8 @@ const { Writer, WriterMultiple } = require("./components/Writer");
   await puppeteer.registerCustomQueryHandler("shadow", QueryHandler);
   fs.writeFileSync("content/output.yml", "", (err) => {});
 
+  console.log("\x1b[36m%s\x1b[0m", "Source name:", source);
+  
   for (const [i, name] of tableNames.entries()) {
     const columns = columnNames[i];
     const tables = await Scraper(url, name, columns, depth, breadth);
