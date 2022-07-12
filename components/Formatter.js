@@ -3,6 +3,7 @@ const fs = require("fs");
 const { trimText, askQuestion } = require("../helpers");
 
 async function Formatter(tables, targets, strategy = 0) {
+  // initialize storage
   const payload = {};
 
   for (const [i, table] of tables.entries()) {
@@ -10,13 +11,13 @@ async function Formatter(tables, targets, strategy = 0) {
       "\x1b[35m%s\x1b[0m",
       `Formatting... [${i + 1}/${tables.length}]`
     );
-    var res = await extract(table);
-    if (res == "done all") break;
+    var res = await extract(table); // call to extract information from the table
+    if (res == "done all") break; // strategy 3 -> if the user enters "done all", then skip the remaining tables
   }
 
   async function extract(table) {
-    const $ = cheerio.load(table);
-    fs.writeFileSync("content/tables.html", $(table).html());
+    const $ = cheerio.load(table); // use cheerio to parse the table
+    fs.writeFileSync("content/tables.html", $(table).html()); // log the table's html
     const rows = $("table").find("tr");
     var curr = ""; // holds the key most recently inserted into payload
 

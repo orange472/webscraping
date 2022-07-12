@@ -13,6 +13,7 @@ async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
 
   console.log("\x1b[36m%s\x1b[0m", "Table name:", name);
 
+  // entry point
   if (rootURL == null || rootURL == "") {
     await scrapeUserInput();
   } else {
@@ -20,59 +21,68 @@ async function Scraper(rootURL, name, columns, depth = 0, breadth = 0) {
   }
 
   async function scrapeUserInput() {
+    // ask for search query to enter into Google
     var query = await askQuestion(
       "Enter a search term (or type nothing if you want to enter a full url): "
     );
+
     if (query == "") {
+      // if user enters nothing, then the program expects a full url next
       var res = await askQuestion(
         'Enter url (or type "back" to enter a search term): '
       );
-      if (res == "back") return scrapeUserInput();
+      if (res == "back") return scrapeUserInput(); // start over
       await scrape(res);
     } else {
       console.log("\x1b[35m%s\x1b[0m", "Searching...");
 
+      // search Google using search query provided
       let urls = await search(query);
       let res = await askQuestion(
         'Enter how many links to scrape (or type "show" to show links or "back" to enter a new search term): '
       );
 
+      // keep on asking question until user does NOT enter "show" (i.g. a number or "back")
       while (res == "show" || res == "links") {
-        console.log(urls);
+        for (var i = 0; i < urls.length; i++) {
+          console.log("\x1b[32m%s\x1b[0m", i + 1 + ")", urls[i]);
+        }
         res = await askQuestion(
-          'Enter how many links you would like to scrape (or type "show to show links or "back" to enter a new search term): '
+          'Enter how many links you would like to scrape (or type "show" to show links or "back" to enter a new search term): '
         );
       }
 
-      if (res == "back") return scrapeUserInput();
+      if (res == "back") return scrapeUserInput(); // start over
       if (res[0] == "[") {
-        res.replace(/\[|\]/g, "").split(",");
+        res = res.replace(/\[|\]/g, "").split(","); // convert res from a string to an array of integers
         for (var i = 0; i < res.length; i++) {
-          if (parseInt(res[i]) != NaN) {
-            await scrape(urls[parseInt(res[i])]);
-          }
-        }
-        return;
-      }
-      if (parseInt(res) == NaN) res = 1;
-      if (res > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
+          let idx = parseInt(res[i]);
+          if (idx == NaN) continue; // idx is not a number
 
+          await scrape(urls[idx - 1]); // subtracting 1 expecting that the user entered indexes according to 1-based array
+        }
+        return; // scrape the urls chosen by the user and don't do more (hence the return statement)
+      }
+
+      if (parseInt(res) == NaN) res = 1; // res defaults to 1
+      if (res > 0) console.log("\x1b[35m%s\x1b[0m", "Scraping...");
       for (var i = 0; i < parseInt(res); i++) {
-        await scrape(urls[i]);
+        await scrape(urls[i]); // scrape urls starting from beginning of list until index is = to res
       }
     }
   }
 
   async function search(query) {
     try {
-      var q = query.replace(/[ +]/, "+");
+      var q = query.replace(/[ +]/, "+"); // replace spaces with "+" because Google's search url is formatted using "+"s
       await page.goto(`https://www.google.com/search?q=${q}`);
-      await page.screenshot({ path: "screenshots/searchresults.png" });
+      await page.screenshot({ path: "screenshots/searchresults.png" }); // take a screenshot of the search results
     } catch (err) {
       console.log(err);
       return;
     }
 
+    // get the hrefs of the a tags inside #res (the id associated with the search results div)
     const res = await page.$$eval(
       "shadow/#res > #search a[href]",
       function (links) {
